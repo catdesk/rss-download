@@ -46,28 +46,40 @@ class RssDownloader
 		open(options.url) do |rss|
 			feed = RSS::Parser.parse(rss)
 			puts "Saving #{feed.channel.title} to #{options.directory}"
+      self.save_feed_to_db(feed, options)
+
 			feed.items.each do |item|
 				system "wget -P #{options.directory} -N #{item.link}"
 			end
 		end
   end # download_rss()
 
-  def self.save_feed_to_db()
+  def self.save_feed_to_db(feed, options)
 
-    feed_database = SQLite3::Database.new( "feed.database" )
+    database = SQLite3::Database.open( "feed.database" )
 
-    # first check if sample_table
-    database.execute( "create table sample_table (id INTEGER PRIMARY KEY, sample_text TEXT, sample_number NUMERIC);" )
+    begin
+      database.execute( "insert into feeds (channel_title, last_build_date, last_checked_at) values (#{feed.channel.title}, #{options.url}, #{options.directory}, #{feed.channel.last_build_date}, #{Time.now})")
+    rescue SQLite3::SQLException => e
+      if e.message.include?("no such table")
+        database.execute( "create table feeds (id INTEGER PRIMARY KEY, channel_title TEXT, feed_url TEXT, feed_directory TEXT, last_build_date INTEGER, last_checked_at INTEGER);" )
+        database.execute( "insert into feeds (channel_title, last_build_date, last_checked_at) values (#{feed.channel.title}, #{options.url}, #{options.directory}, #{feed.channel.last_build_date}, #{Time.now})")
+      else
+        p e
+      end
+    rescue Exception => e
+      p "BLARHG"
+      p e
+    end
 
-    database.execute( "insert into sample_table (sample_text,sample_number) values ('Sample Text1', 123)")
-    database.execute( "insert into sample_table (sample_text,sample_number) values ('Sample Text2', 456)")
 
-    rows = database.execute( "select * from sample_table" )
+    p database.execute( "select * from feeds" )
 
     # Relevant RSS fields
     # feed.channel.last_build_date or lastBuildDate or nil
     # ...title
     # ...image || image.url or nil
+    #
     # feed.item.link
     # ...item.title
     # ...item.pub_date or pubDate
