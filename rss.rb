@@ -49,7 +49,7 @@ class RssDownloader
       self.save_feed_to_db(feed, options)
 
 			feed.items.each do |item|
-				system "wget -P #{options.directory} -N #{item.link}"
+#				system "wget -P #{options.directory} -N #{item.link}"
 			end
 		end
   end # download_rss()
@@ -59,12 +59,14 @@ class RssDownloader
     database = SQLite3::Database.open( "feed.database" )
 
     begin
-      database.execute( "insert into feeds (channel_title, last_build_date, last_checked_at) values (#{feed.channel.title}, #{options.url}, #{options.directory}, #{feed.channel.last_build_date}, #{Time.now})")
+      self.insert_feed(database, feed, options)
     rescue SQLite3::SQLException => e
       if e.message.include?("no such table")
-        database.execute( "create table feeds (id INTEGER PRIMARY KEY, channel_title TEXT, feed_url TEXT, feed_directory TEXT, last_build_date INTEGER, last_checked_at INTEGER);" )
-        database.execute( "insert into feeds (channel_title, last_build_date, last_checked_at) values (#{feed.channel.title}, #{options.url}, #{options.directory}, #{feed.channel.last_build_date}, #{Time.now})")
+        p "NO SUCH TABLE, CREATING"
+        database.execute( "CREATE table feeds (id INTEGER PRIMARY KEY, channel_title TEXT, feed_url TEXT, feed_directory TEXT, last_build_date INTEGER, last_checked_at INTEGER);" )
+        self.insert_feed(database, feed, options)
       else
+        p "OTHER SQL POOP"
         p e
       end
     rescue Exception => e
@@ -73,7 +75,7 @@ class RssDownloader
     end
 
 
-    p database.execute( "select * from feeds" )
+    p database.execute( "SELECT * FROM feeds" )
 
     # Relevant RSS fields
     # feed.channel.last_build_date or lastBuildDate or nil
@@ -89,6 +91,17 @@ class RssDownloader
     # item downloaded_at
 
   end # save_to_db()
+
+  def self.insert_feed(database, feed, options)
+    extant_feed = database.execute( "SELECT id FROM feeds WHERE feed_url='#{options.url}'" )
+    p extant_feed
+    if extant_feed.count == 0
+      database.execute( "INSERT INTO feeds (channel_title, feed_url, feed_directory, last_build_date, last_checked_at) VALUES ('#{feed.channel.title}', '#{options.url}', '#{options.directory}', #{(feed.channel.respond_to?('last_build_date') ? feed.channel.last_build_date.to_i : feed.channel.lastBuildDate.to_i)}, #{Time.now.to_i})")
+    else
+      database.execute( "UPDATE feeds SET last_build_date='#{(feed.channel.respond_to?('last_build_date') ? feed.channel.last_build_date.to_i : feed.channel.lastBuildDate.to_i)}', last_checked_at='#{Time.now.to_i}' WHERE id=#{extant_feed[0][0]}" )
+    end
+  end # insert_feed()
+
 end # class RssDownloader
 
 options = RssDownloader.parse(ARGV)
