@@ -3,6 +3,7 @@ require 'optparse'
 require 'rss'
 require 'open-uri'
 require 'ostruct'
+require 'sqlite3'
 
 class RssDownloader
 
@@ -51,8 +52,33 @@ class RssDownloader
 		end
   end # download_rss()
 
-end # class RssDownloader
+  def self.save_feed_to_db()
 
+    feed_database = SQLite3::Database.new( "feed.database" )
+
+    # first check if sample_table
+    database.execute( "create table sample_table (id INTEGER PRIMARY KEY, sample_text TEXT, sample_number NUMERIC);" )
+
+    database.execute( "insert into sample_table (sample_text,sample_number) values ('Sample Text1', 123)")
+    database.execute( "insert into sample_table (sample_text,sample_number) values ('Sample Text2', 456)")
+
+    rows = database.execute( "select * from sample_table" )
+
+    # Relevant RSS fields
+    # feed.channel.last_build_date or lastBuildDate or nil
+    # ...title
+    # ...image || image.url or nil
+    # feed.item.link
+    # ...item.title
+    # ...item.pub_date or pubDate
+    # ...item.dc_identifier.content or nil
+    # ...item.dc_date.content or nil
+    # item status (downloaded, new, ignored)
+    # item downloaded_at
+
+  end # save_to_db()
+end # class RssDownloader
 
 options = RssDownloader.parse(ARGV)
 RssDownloader.download_rss(options)
+
