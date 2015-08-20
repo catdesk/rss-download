@@ -34,10 +34,6 @@ class RssDownloader
         end
   		end
 
-      opts.on("-o OPTIONS", "--options OPTIONS", String, "Additional instructions to wget, spaces must be escaped") do |extra_opts|
-				options.extra = extra_opts
-  		end
-
       opts.on_tail("-h", "--help", "Show this message") do
         puts opts
         exit
@@ -79,7 +75,6 @@ class RssDownloader
             save_file.print linked_file.read
           end
         end
-        #system "wget -P #{options.directory} -N #{options.extra} #{item.link + options.url_addendum}"
 			end
 		end
   end # download_rss()
