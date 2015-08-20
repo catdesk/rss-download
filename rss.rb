@@ -24,6 +24,10 @@ class RssDownloader
 				options.url = url
   		end
 
+      opts.on("-o OPTIONS", "--options OPTIONS", String, "Additional instructions to wget") do |extra_opts|
+				options.extra = extra_opts
+  		end
+
       opts.on_tail("-h", "--help", "Show this message") do
         puts opts
         exit
@@ -46,7 +50,7 @@ class RssDownloader
 			feed = RSS::Parser.parse(rss)
 			puts "Saving #{feed.channel.title} to #{options.directory}"
 			feed.items.each do |item|
-				system "wget -P #{options.directory} -N #{item.link}"
+        system "wget -P #{options.directory} -N #{options.extra} #{item.link}"
 			end
 		end
   end # download_rss()
