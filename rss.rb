@@ -52,11 +52,13 @@ class RssDownloader
   end # parse()
 
   def self.add_params_to_url(url, params)
-    url = "#{url}?#{params.first}"
-    params[1..-1].each do |param|
-      url += "&#{param}"
+    if params.length > 0
+      url = "#{url}?#{params.first}"
+      params[1..-1].each do |param|
+        url += "&#{param}"
+      end
     end
-      url
+    url
   end
 
   def self.download_rss(options)
@@ -64,14 +66,14 @@ class RssDownloader
 			feed = RSS::Parser.parse(rss)
 			puts "Saving #{feed.channel.title} to #{options.directory}"
 			feed.items.each do |item|
-        open(options.directory + item.link.split('/').last, 'wb') do |save_file|
         params = Array.new(options.url_params)
         item.link.split('?').last.split('&').each do |param|
           params << param
         end
         item_link = self.add_params_to_url(item.link.split('?').first, params)
         p item_link
-          open(item_link) do |linked_file|
+        open(item_link) do |linked_file|
+          open(options.directory + linked_file.meta['content-disposition'].split("\"").last, 'wb') do |save_file|
             save_file.print linked_file.read
           end
         end
