@@ -8,7 +8,7 @@ class RssDownloader
 
   def self.parse(args)
     options = OpenStruct.new
-    options.directory = '~/incoming'
+    options.directory = File.expand_path('~/incoming') + '/'
     options.url_params = []
 
     opt_parser = OptionParser.new do |opts|
@@ -66,14 +66,19 @@ class RssDownloader
 			feed = RSS::Parser.parse(rss)
 			puts "Saving #{feed.channel.title} to #{options.directory}"
 			feed.items.each do |item|
+      p item
         params = Array.new(options.url_params)
         item.link.split('?').last.split('&').each do |param|
           params << param
         end
         item_link = self.add_params_to_url(item.link.split('?').first, params)
-        p item_link
         open(item_link) do |linked_file|
-          open(options.directory + linked_file.meta['content-disposition'].split("\"").last, 'wb') do |save_file|
+          if linked_file.meta['content-disposition'] and linked_file.meta['content-disposition'].split("\"").first.include?('file')
+            filename = linked_file.meta['content-disposition'].split("\"").last
+          else
+            filename = item_link.split('/').last.gsub(/[&:]/, '-')
+          end
+          open(options.directory + filename, 'wb') do |save_file|
             save_file.print linked_file.read
           end
         end
