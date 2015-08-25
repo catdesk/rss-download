@@ -13,7 +13,7 @@ class YoutubeDL
   def self.is_installed?
     if system "youtube-dl --version > /dev/null"
       :installed_to_system
-    elsif system "#{File.join(File.join(File.dirname(__FILE__), "lib"), "youtube-dl")} > /dev/null"
+    elsif system "#{File.join(File.join(File.dirname(__FILE__), "lib"), "youtube-dl")} --version > /dev/null"
       :installed_to_lib
     else
       self.install_prompt
