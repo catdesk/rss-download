@@ -46,9 +46,7 @@ class YoutubeDL < RssDownloader
     if @install_type == :installed_to_system
       system "youtube-dl -x #{link} -o '#{download_directory}%(title)s-%(id)s.%(ext)s'"
     elsif @install_type == :installed_to_lib
-      system "#{@lib_path+'/youtube-dl'} -x #{link}"
+      system "#{@lib_path+'/youtube-dl'} -x #{link} -o '#{download_directory}%(title)s-%(id)s.%(ext)s'"
     end
   end
 end
-
-YoutubeDL.is_installed?

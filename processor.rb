@@ -2,7 +2,7 @@ class Processor < RssDownloader
 
   def self.parse(args)
     options = OpenStruct.new
-    options.directory = File.expand_path('~/incoming') + '/'
+    options.directory = File.expand_path(self.config['download-directory']) + '/'
     options.url_params = []
 
     opt_parser = OptionParser.new do |opts|
