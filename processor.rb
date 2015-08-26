@@ -88,4 +88,4 @@ class Processor < RssDownloader
 		end
   end # process_rss()
 
-end # class RssDownloader::Processor
+end # class Processor

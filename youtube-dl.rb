@@ -49,4 +49,4 @@ class YoutubeDL < RssDownloader
       system "#{@lib_path+'/youtube-dl'} -x #{link} -o '#{download_directory}%(title)s-%(id)s.%(ext)s'"
     end
   end
-end
+end # class YoutubeDL
